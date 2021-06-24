@@ -25,11 +25,11 @@
           {
             alert: 'KubeCPUOvercommit',
             expr: |||
-              sum(namespace_cpu:kube_pod_container_resource_requests:sum{%(ignoringOverprovisionedWorkloadSelector)s})
+              sum(namespace_cpu:kube_pod_container_resource_requests:sum{%(ignoringOverprovisionedWorkloadSelector)s}) by (%(clusterGroupLabelsStr)s)
                 /
-              sum(kube_node_status_allocatable{resource="cpu"})
+              sum(kube_node_status_allocatable{resource="cpu"}) by (%(clusterGroupLabelsStr)s)
                 >
-              ((count(kube_node_status_allocatable{resource="cpu"}) > 1) - 1) / count(kube_node_status_allocatable{resource="cpu"})
+              ((count(kube_node_status_allocatable{resource="cpu"}) by (%(clusterGroupLabelsStr)s) > 1) - 1) / count(kube_node_status_allocatable{resource="cpu"})  by (%(clusterGroupLabelsStr)s)
             ||| % $._config,
             labels: {
               severity: 'warning',
@@ -43,13 +43,13 @@
           {
             alert: 'KubeMemoryOvercommit',
             expr: |||
-              sum(namespace_memory:kube_pod_container_resource_requests:sum{%(ignoringOverprovisionedWorkloadSelector)s})
+              sum(namespace_memory:kube_pod_container_resource_requests:sum{%(ignoringOverprovisionedWorkloadSelector)s}) by (%(clusterGroupLabelsStr)s)
                 /
-              sum(kube_node_status_allocatable{resource="memory"})
+              sum(kube_node_status_allocatable{resource="memory"}) by (%(clusterGroupLabelsStr)s)
                 >
-              ((count(kube_node_status_allocatable{resource="memory"}) > 1) - 1)
+              ((count(kube_node_status_allocatable{resource="memory"}) by (%(clusterGroupLabelsStr)s) > 1) - 1)
                 /
-              count(kube_node_status_allocatable{resource="memory"})
+              count(kube_node_status_allocatable{resource="memory"}) by (%(clusterGroupLabelsStr)s)
             ||| % $._config,
             labels: {
               severity: 'warning',
@@ -63,9 +63,9 @@
           {
             alert: 'KubeCPUQuotaOvercommit',
             expr: |||
-              sum(kube_resourcequota{%(prefixedNamespaceSelector)s%(kubeStateMetricsSelector)s, type="hard", resource="cpu"})
+              sum(kube_resourcequota{%(prefixedNamespaceSelector)s%(kubeStateMetricsSelector)s, type="hard", resource="cpu"}) by (%(clusterGroupLabelsStr)s)
                 /
-              sum(kube_node_status_allocatable{resource="cpu"})
+              sum(kube_node_status_allocatable{resource="cpu"}) by (%(clusterGroupLabelsStr)s)
                 > %(namespaceOvercommitFactor)s
             ||| % $._config,
             labels: {
@@ -80,9 +80,9 @@
           {
             alert: 'KubeMemoryQuotaOvercommit',
             expr: |||
-              sum(kube_resourcequota{%(prefixedNamespaceSelector)s%(kubeStateMetricsSelector)s, type="hard", resource="memory"})
+              sum(kube_resourcequota{%(prefixedNamespaceSelector)s%(kubeStateMetricsSelector)s, type="hard", resource="memory"})  by (%(clusterGroupLabelsStr)s)
                 /
-              sum(kube_node_status_allocatable{resource="memory",%(kubeStateMetricsSelector)s})
+              sum(kube_node_status_allocatable{resource="memory",%(kubeStateMetricsSelector)s}) by (%(clusterGroupLabelsStr)s)
                 > %(namespaceOvercommitFactor)s
             ||| % $._config,
             labels: {
@@ -148,9 +148,9 @@
           {
             alert: 'CPUThrottlingHigh',
             expr: |||
-              sum(increase(container_cpu_cfs_throttled_periods_total{container!="", %(cpuThrottlingSelector)s}[5m])) by (container, pod, namespace)
+              sum(increase(container_cpu_cfs_throttled_periods_total{container!="", %(cpuThrottlingSelector)s}[5m])) by (container, pod, namespace, %(clusterGroupLabelsStr)s)
                 /
-              sum(increase(container_cpu_cfs_periods_total{%(cpuThrottlingSelector)s}[5m])) by (container, pod, namespace)
+              sum(increase(container_cpu_cfs_periods_total{%(cpuThrottlingSelector)s}[5m])) by (container, pod, namespace, %(clusterGroupLabelsStr)s)
                 > ( %(cpuThrottlingPercent)s / 100 )
             ||| % $._config,
             'for': '15m',
