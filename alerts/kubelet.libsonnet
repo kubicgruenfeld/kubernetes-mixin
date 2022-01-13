@@ -101,7 +101,7 @@
           {
             alert: 'KubeletPodStartUpLatencyHigh',
             expr: |||
-              histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{%(kubeletSelector)s}[5m])) by (instance, le)) * on(instance) group_left(node,%(clusterGroupLabelsStr)s) kubelet_node_name{%(kubeletSelector)s} > 60
+              histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{%(kubeletSelector)s}[5m])) by (instance, le, %(clusterLabel)s)) * on(instance, %(clusterLabel)s) group_left(node,%(clusterGroupLabelsStr)s) kubelet_node_name{%(kubeletSelector)s} > 60
             ||| % $._config,
             'for': '15m',
             labels: {
